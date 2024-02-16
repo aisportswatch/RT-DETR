@@ -11,7 +11,7 @@ train_dataloader:
         - {type: RandomIoUCrop, p: 0.8}
         - {type: SanitizeBoundingBox, min_size: 1}
         - {type: RandomHorizontalFlip}
-        - {type: Resize, size: [2048, 6144], }
+        - {type: Resize, size: [1024, 3072], }
         - {type: ToImageTensor}
         - {type: ConvertDtype}
         - {type: SanitizeBoundingBox, min_size: 1}
@@ -26,7 +26,7 @@ val_dataloader:
   dataset:
     transforms:
       ops:
-        - {type: Resize, size: [2048, 6144]}
+        - {type: Resize, size: [1024, 3072]}
         - {type: ToImageTensor}
         - {type: ConvertDtype}
   shuffle: False

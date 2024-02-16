@@ -14,14 +14,17 @@ __all__ = ['StaigeDataset']
 
 
 mscoco_name2category = {v: k for k, v in mscoco_category2name.items()}
+mscoco_name2category["hurdle"] = 12
 staige_labels2coco_name = {
     "ball": "sports ball",
     "goalkeeper": "person",
     "player": "person",
     "referee": "person",
     "horse": "horse",
-    "mounted_horse": "horse",
+    "mounted horse": "horse",
     "vehicle": "car",
+    "hurdle": "hurdle",
+    "person": "person",
     # TODO: hurdle
 }
 staige_labels2coco_label = {k: mscoco_name2category[v] for k, v in staige_labels2coco_name.items()}

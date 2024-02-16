@@ -1,6 +1,6 @@
 
 __include__: [
-  '../dataset/soccer_data.yml',
+  '../dataset/horses_data.yml',
   '../runtime.yml',
   './include/dataloader.yml',
   './include/optimizer.yml',
