@@ -22,8 +22,7 @@ staige_labels2coco_name = {
     "horse": "horse",
     "mounted horse": "horse",
     "vehicle": "car",
-    "person": "person",
-    # TODO: hurdle
+    "person": "person"
 }
 staige_labels2coco_label = {k: mscoco_name2category[v] for k, v in staige_labels2coco_name.items()}
 
