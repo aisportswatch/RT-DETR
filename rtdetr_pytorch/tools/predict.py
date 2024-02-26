@@ -154,7 +154,8 @@ def main():
     )  
     
     metric.update(p, t)
-    metric.compute()
+    results = metric.compute()
+    print(results)
     
     print("done")
     
