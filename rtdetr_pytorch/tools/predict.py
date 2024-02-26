@@ -27,6 +27,18 @@ output_directory = f'/home/sergej/volume/RT-DETR/rtdetr_pytorch/soccer_test/'
 input_directory = "/home/sergej/volume/RT-DETR/rtdetr_pytorch/dataset"
 THRESH = 0.4
 
+class NumpyFloatValuesEncoder(json.JSONEncoder):
+    def default(self, obj):
+        # if isinstance(obj, np.float32):
+        #     return float(obj)
+        if isinstance(obj, np.integer):
+            return int(obj)
+        if isinstance(obj, np.floating):
+            return float(obj)
+        if isinstance(obj, np.ndarray):
+            return obj.tolist()
+        return json.JSONEncoder.default(self, obj)
+
 def get_coco_format(annotations, label_map):
     coco_format = {
         "images": [],
@@ -49,7 +61,7 @@ def get_coco_format(annotations, label_map):
         img_path, x1, y1, x2, y2, class_name = row
         
         image_id = img_ids[img_path]
-        bbox = [[float(x1), float(y1), float(x2-x1), float(y2-y1)]]
+        bbox = [float(x1), float(y1), float(x2), float(y2)]
         label_id = label_map[class_name]
         
         annotations_dict = {"id": idx, "image_id": image_id, "category_id": label_id, "bbox": bbox, "iscrowd": 0, "area": float((x2-x1)*(y2-y1))}
@@ -77,11 +89,15 @@ def main():
     
     coco_format = get_coco_format(annotations, staige_labels2coco_id)
     
+     # Save targets to JSON file
+    output_file = "targets_coco_format.json"
+    with open(output_file, "w") as f:
+        json.dump(coco_format, f)
     
     size_tensor = torch.tensor([[WIDTH, HEIGHT]])
     preds = []
     id_counter = 0
-    for i in range(1):
+    for i in range(3):
         target = coco_format["images"][i]
         img_path = target["file_name"]
         full_im = Image.open(img_path).convert('RGB')
@@ -119,22 +135,9 @@ def main():
     #     f.write(target_json)
     # metric.tm_to_coco("coco0")
     
-    class NumpyFloatValuesEncoder(json.JSONEncoder):
-        def default(self, obj):
-            # if isinstance(obj, np.float32):
-            #     return float(obj)
-            if isinstance(obj, np.integer):
-                return int(obj)
-            if isinstance(obj, np.floating):
-                return float(obj)
-            if isinstance(obj, np.ndarray):
-                return obj.tolist()
-            return json.JSONEncoder.default(self, obj)
+
     
-    # Save targets to JSON file
-    output_file = "targets_coco_format.json"
-    with open(output_file, "w") as f:
-        json.dump(coco_format, f)
+   
         
     # Save preds to JSON file
     output_file = "preds_coco_format.json"
