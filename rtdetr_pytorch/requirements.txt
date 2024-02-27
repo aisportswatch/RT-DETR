@@ -12,3 +12,4 @@ opencv-python-headless
 torchmetrics
 tqdm
 requests
+tensorboard

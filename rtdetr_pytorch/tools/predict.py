@@ -17,6 +17,21 @@ from tqdm import tqdm
 import argparse
 from clearml import Dataset, InputModel
 import requests
+from torch.utils.tensorboard import SummaryWriter
+
+
+mscoco_name2category = {v: k for k, v in mscoco_category2name.items()}
+staige_labels2coco_name = {
+    "ball": "sports ball",
+    "goalkeeper": "person",
+    "player": "person",
+    "referee": "person",
+    "horse": "horse",
+    "mounted horse": "horse",
+    "vehicle": "car",
+    "person": "person"
+}
+staige_labels2coco_id = {k: mscoco_name2category[v] for k, v in staige_labels2coco_name.items()}
 
 def download_file(url, filename):
     response = requests.get(url)
@@ -69,7 +84,7 @@ def get_coco_format(annotations, label_map, input_directory, width, height):
     
     return coco_format
 
-def main(args):
+def main(args, writer):
     height = args.height
     width = args.width
     model = args.model
@@ -82,18 +97,7 @@ def main(args):
     
     annotations = pd.read_csv(annotations_file, header=None)
     
-    mscoco_name2category = {v: k for k, v in mscoco_category2name.items()}
-    staige_labels2coco_name = {
-        "ball": "sports ball",
-        "goalkeeper": "person",
-        "player": "person",
-        "referee": "person",
-        "horse": "horse",
-        "mounted horse": "horse",
-        "vehicle": "car",
-        "person": "person"
-    }
-    staige_labels2coco_id = {k: mscoco_name2category[v] for k, v in staige_labels2coco_name.items()}
+
     
     coco_format = get_coco_format(annotations, staige_labels2coco_id, input_directory, width, height)
     
@@ -101,7 +105,8 @@ def main(args):
     output_file = "targets_coco_format.json"
     with open(output_file, "w") as f:
         json.dump(coco_format, f)
-    
+
+    # Calculate predictions
     size_tensor = torch.tensor([[width, height]])
     preds = []
     for i in tqdm(range(0, len(coco_format["images"])), desc="Progress"):
@@ -138,10 +143,6 @@ def main(args):
     # with open(f"coco0_target.json", "w") as f:
     #     f.write(target_json)
     # metric.tm_to_coco("coco0")
-    
-
-    
-
         
     # Save preds to JSON file
     output_file = "preds_coco_format.json"
@@ -160,6 +161,12 @@ def main(args):
     metric.update(p, t)
     results = metric.compute()
     print(results)
+
+    # Write to TensorBoard
+    for key, value in results.items():
+        if len(value != 1):
+            continue
+        writer.add_scalar(f'Test/{key}', value.item(), 0)
 
     # fig_, ax_ = metric.plot()
     # fig_.show()
@@ -193,4 +200,6 @@ if __name__ == '__main__':
     input_model = InputModel(model_id=args.model_id)
     args.model = input_model.get_local_copy()
 
-    main(args)
+    writer = SummaryWriter('runs')
+
+    main(args, writer)
