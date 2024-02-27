@@ -72,12 +72,8 @@ class DetSolver(BaseSolver):
 
             # Write to tensorboard
             for k, v in train_stats.items():
-                if v.numel() != 1:
-                    continue
                 writer.add_scalar(f'Train/{k}', v.item(), epoch)
             for k, v in test_stats.items():
-                if v.numel() != 1:
-                    continue
                 writer.add_scalar(f'Test/{k}', v.item(), epoch)
 
             if self.output_dir and dist.is_main_process():

@@ -61,6 +61,9 @@ if __name__ == '__main__':
             dataset_project=args.dataset_project,
             alias="Soccer 6k dataset"
         ).get_local_copy()
+        print(f"Linking {dataset_path} ")
         os.symlink(dataset_path, "dataset")
+    else:
+        print("use local dataset")
 
     main(args)
