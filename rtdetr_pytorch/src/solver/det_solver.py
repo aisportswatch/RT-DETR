@@ -74,6 +74,9 @@ class DetSolver(BaseSolver):
             for k, v in train_stats.items():
                 writer.add_scalar(f'Train/{k}', v, epoch)
             for k, v in test_stats.items():
+                print(f"{k} type:{type(v)}")
+                if isinstance(v, list):
+                    continue
                 writer.add_scalar(f'Test/{k}', v, epoch)
 
             if self.output_dir and dist.is_main_process():
