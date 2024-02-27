@@ -76,8 +76,10 @@ class DetSolver(BaseSolver):
             for k, v in test_stats.items():
                 print(f"{k} type:{type(v)}")
                 if isinstance(v, list):
-                    continue
-                writer.add_scalar(f'Test/{k}', v, epoch)
+                    for i, data in enumerate(v):
+                        writer.add_scalar(f'Test/{k}_{i}', data, epoch)
+                else:
+                    writer.add_scalar(f'Test/{k}', v, epoch)
 
             if self.output_dir and dist.is_main_process():
                 with (self.output_dir / "log.txt").open("a") as f:
