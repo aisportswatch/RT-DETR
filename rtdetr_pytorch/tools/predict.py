@@ -18,6 +18,7 @@ from torchvision import datapoints
 from torchmetrics.detection.mean_ap import MeanAveragePrecision
 from tqdm import tqdm
 import argparse
+from clearml import Dataset
 
 class NumpyFloatValuesEncoder(json.JSONEncoder):
     def default(self, obj):
@@ -169,7 +170,6 @@ if __name__ == '__main__':
     parser = argparse.ArgumentParser()
 
     parser.add_argument('--model', '-m', type=str, required=True)
-    parser.add_argument('--input_dir', '-i', type=str, required=True)
     parser.add_argument('--output_dir', '-o', type=str, default="./results")
     parser.add_argument('--annotations', '-a', type=str, default="eval.csv")
 
@@ -177,5 +177,17 @@ if __name__ == '__main__':
     parser.add_argument('--height', '-h', type=int, default=2048)
     parser.add_argument('--thresh', '-t', type=float, default=0.4)
 
+    parser.add_argument('--dataset_name', '-d', type=str, default="soccer_6k_single")
+    parser.add_argument('--dataset_project', '-p', type=str, default="Pytorch Test")
+
     args = parser.parse_args()
+
+    dataset_path = Dataset.get(
+        dataset_name=args.dataset_name,
+        dataset_project=args.dataset_project,
+        alias="Soccer 6k dataset"
+    ).get_local_copy()
+
+    args.input_dir = dataset_path
+
     main(args)
