@@ -21,6 +21,7 @@ def main(args, ) -> None:
 
     cfg = YAMLConfig(
         args.config,
+        args.epoches,
         resume=args.resume, 
         use_amp=args.amp,
         tuning=args.tuning
@@ -42,6 +43,7 @@ if __name__ == '__main__':
     parser.add_argument('--tuning', '-t', type=str, )
     parser.add_argument('--test-only', action='store_true', default=False,)
     parser.add_argument('--amp', action='store_true', default=False,)
+    parser.add_argument('--epoches', '-e', type=int, default=1)
 
     args = parser.parse_args()
 
