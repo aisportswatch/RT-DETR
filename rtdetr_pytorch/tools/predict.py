@@ -16,16 +16,8 @@ from src.data.staige_dataset import StaigeDataset
 from torchvision.io import read_image
 from torchvision import datapoints
 from torchmetrics.detection.mean_ap import MeanAveragePrecision
-
-HEIGHT = 2048
-WIDTH = 6144
-EPOCH = "00"
-MODEL = f"/home/sergej/volume/RT-DETR/rtdetr_pytorch/soccer{EPOCH}.onnx"
-ANNOTATIONS_FILE = "/home/sergej/volume/RT-DETR/rtdetr_pytorch/dataset/train3.csv"
-CLASSES_FILE = "/home/sergej/volume/RT-DETR/rtdetr_pytorch/dataset/classes.csv"
-output_directory = f'/home/sergej/volume/RT-DETR/rtdetr_pytorch/soccer_test/'
-input_directory = "/home/sergej/volume/RT-DETR/rtdetr_pytorch/dataset"
-THRESH = 0.4
+from tqdm import tqdm
+import argparse
 
 class NumpyFloatValuesEncoder(json.JSONEncoder):
     def default(self, obj):
@@ -39,7 +31,7 @@ class NumpyFloatValuesEncoder(json.JSONEncoder):
             return obj.tolist()
         return json.JSONEncoder.default(self, obj)
 
-def get_coco_format(annotations, label_map):
+def get_coco_format(annotations, label_map, input_directory, width, height):
     coco_format = {
         "images": [],
         "annotations": [],
@@ -54,7 +46,7 @@ def get_coco_format(annotations, label_map):
     img_ids = dict(zip(img_paths, range(len(img_paths))))
     for idx, image in enumerate(img_paths):
         img_path = os.path.join(input_directory, image)
-        image_dict = {"id": idx, "file_name": img_path, "height": HEIGHT, "width": WIDTH}
+        image_dict = {"id": idx, "file_name": img_path, "height": height, "width": width}
         coco_format["images"].append(image_dict)
     
     for idx, row in annotations.iterrows():
@@ -69,10 +61,18 @@ def get_coco_format(annotations, label_map):
     
     return coco_format
 
-def main():
-    sess = ort.InferenceSession(MODEL, providers=["CPUExecutionProvider"])#"CUDAExecutionProvider", 
+def main(args):
+    height = args.height
+    width = args.width
+    model = args.model
+    input_directory = args.input_dir
+    output_directory = args.output_dir
+    annotations_file = os.path.join(input_directory, args.annotations)
+    thresh = args.thresh
+
+    sess = ort.InferenceSession(model, providers=["CUDAExecutionProvider"])#"CUDAExecutionProvider", CPUExecutionProvider
     
-    annotations = pd.read_csv(ANNOTATIONS_FILE, header=None)
+    annotations = pd.read_csv(annotations_file, header=None)
     
     mscoco_name2category = {v: k for k, v in mscoco_category2name.items()}
     staige_labels2coco_name = {
@@ -87,21 +87,23 @@ def main():
     }
     staige_labels2coco_id = {k: mscoco_name2category[v] for k, v in staige_labels2coco_name.items()}
     
-    coco_format = get_coco_format(annotations, staige_labels2coco_id)
+    coco_format = get_coco_format(annotations, staige_labels2coco_id, input_directory, width, height)
     
      # Save targets to JSON file
     output_file = "targets_coco_format.json"
     with open(output_file, "w") as f:
         json.dump(coco_format, f)
     
-    size_tensor = torch.tensor([[WIDTH, HEIGHT]])
+    size_tensor = torch.tensor([[width, height]])
     preds = []
     id_counter = 0
-    for i in range(3):
+    for i in tqdm(range(0, len(coco_format["images"])), desc="Progress"):
+        if i > 0:
+            break
         target = coco_format["images"][i]
         img_path = target["file_name"]
         full_im = Image.open(img_path).convert('RGB')
-        full_im = full_im.resize((WIDTH, HEIGHT))
+        full_im = full_im.resize((width, height))
         img_tensor = ToTensor()(full_im)[None]
         
         ypred = sess.run(
@@ -113,9 +115,9 @@ def main():
         labels, boxes, scores = ypred
 
         scr = scores[0]
-        lab = labels[0][scr > THRESH]
-        box = boxes[0][scr > THRESH]
-        scr = scores[0][scr > THRESH]
+        lab = labels[0][scr > thresh]
+        box = boxes[0][scr > thresh]
+        scr = scores[0][scr > thresh]
         
         for index, b in enumerate(box):
             l = lab[index]
@@ -156,9 +158,24 @@ def main():
     metric.update(p, t)
     results = metric.compute()
     print(results)
+
+    # fig_, ax_ = metric.plot()
+    # fig_.show()
     
     print("done")
     
 
 if __name__ == '__main__':
-    main()
+    parser = argparse.ArgumentParser()
+
+    parser.add_argument('--model', '-m', type=str, required=True)
+    parser.add_argument('--input_dir', '-i', type=str, required=True)
+    parser.add_argument('--output_dir', '-o', type=str, default="./results")
+    parser.add_argument('--annotations', '-a', type=str, default="eval.csv")
+
+    parser.add_argument('--width', '-w', type=int, default=6144)
+    parser.add_argument('--height', '-h', type=int, default=2048)
+    parser.add_argument('--thresh', '-t', type=float, default=0.4)
+
+    args = parser.parse_args()
+    main(args)
