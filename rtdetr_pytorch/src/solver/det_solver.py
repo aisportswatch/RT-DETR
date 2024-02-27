@@ -12,12 +12,13 @@ from src.data import get_coco_api_from_dataset
 
 from .solver import BaseSolver
 from .det_engine import train_one_epoch, evaluate
-
+from torch.utils.tensorboard import SummaryWriter
 
 class DetSolver(BaseSolver):
     
     def fit(self, ):
         print("Start training")
+        writer = SummaryWriter('fit')
         self.train()
 
         args = self.cfg 
@@ -68,6 +69,16 @@ class DetSolver(BaseSolver):
                         **{f'test_{k}': v for k, v in test_stats.items()},
                         'epoch': epoch,
                         'n_parameters': n_parameters}
+
+            # Write to tensorboard
+            for k, v in train_stats.items():
+                if v.numel() != 1:
+                    continue
+                writer.add_scalar(f'Train/{k}', v.item(), epoch)
+            for k, v in test_stats.items():
+                if v.numel() != 1:
+                    continue
+                writer.add_scalar(f'Test/{k}', v.item(), epoch)
 
             if self.output_dir and dist.is_main_process():
                 with (self.output_dir / "log.txt").open("a") as f:
