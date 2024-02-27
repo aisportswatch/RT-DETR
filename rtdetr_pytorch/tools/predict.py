@@ -104,10 +104,7 @@ def main(args):
     
     size_tensor = torch.tensor([[width, height]])
     preds = []
-    id_counter = 0
     for i in tqdm(range(0, len(coco_format["images"])), desc="Progress"):
-        if i > 0:
-            break
         target = coco_format["images"][i]
         img_path = target["file_name"]
         full_im = Image.open(img_path).convert('RGB')
@@ -131,10 +128,7 @@ def main(args):
             l = lab[index]
             s = scr[index]
             b = b.astype(float)
-            area = (b[2] - b[0])*(b[3]-b[1])
-            # pred_dict = {"id": id_counter, "image_id": int(target["id"]), "area": float(area), "category_id": l, "iscrowd": 0, "bbox": list(b)}
             pred_dict = {"image_id": int(target["id"]), "category_id": int(l), "bbox": list(b), "score": float(s)}
-            id_counter += 1
             preds.append(pred_dict)
     
     # ds = StaigeDataset(ANNOTATIONS_FILE, input_directory, None)
@@ -147,7 +141,7 @@ def main(args):
     
 
     
-   
+
         
     # Save preds to JSON file
     output_file = "preds_coco_format.json"
