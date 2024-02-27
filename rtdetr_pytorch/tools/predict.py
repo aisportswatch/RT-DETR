@@ -15,7 +15,17 @@ from src.data.staige_dataset import StaigeDataset
 from torchmetrics.detection.mean_ap import MeanAveragePrecision
 from tqdm import tqdm
 import argparse
-from clearml import Dataset
+from clearml import Dataset, InputModel
+import requests
+
+def download_file(url, filename):
+    response = requests.get(url)
+    if response.status_code == 200:  # Check if the request was successful
+        with open(filename, 'wb') as file:
+            file.write(response.content)
+        print(f"Downloaded {filename} successfully.")
+    else:
+        print("Failed to download the file.")
 
 class NumpyFloatValuesEncoder(json.JSONEncoder):
     def default(self, obj):
@@ -166,12 +176,12 @@ def main(args):
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()
 
-    parser.add_argument('--model', '-m', type=str, required=True)
+    parser.add_argument('--model_id', '-m', type=str, required=True)
     parser.add_argument('--output_dir', '-o', type=str, default="./results")
     parser.add_argument('--annotations', '-a', type=str, default="eval.csv")
 
-    parser.add_argument('--width', '-w', type=int, default=6144)
-    parser.add_argument('--height', '-h', type=int, default=2048)
+    parser.add_argument('--width', type=int, default=6144)
+    parser.add_argument('--height', type=int, default=2048)
     parser.add_argument('--thresh', '-t', type=float, default=0.4)
 
     parser.add_argument('--dataset_name', '-d', type=str, default="soccer_6k_single")
@@ -184,7 +194,9 @@ if __name__ == '__main__':
         dataset_project=args.dataset_project,
         alias="Soccer 6k dataset"
     ).get_local_copy()
-
     args.input_dir = dataset_path
+
+    input_model = InputModel(model_id=args.model_id)
+    args.model = input_model.get_local_copy()
 
     main(args)
