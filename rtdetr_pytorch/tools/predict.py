@@ -177,16 +177,16 @@ def main(args, writer):
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()
 
-    parser.add_argument('--model_id', '-m', type=str, required=True)
-    parser.add_argument('--output_dir', '-o', type=str, default="./results")
+    parser.add_argument('--model-id', '-m', type=str, required=True)
+    parser.add_argument('--output-dir', '-o', type=str, default="./results")
     parser.add_argument('--annotations', '-a', type=str, default="eval.csv")
 
     parser.add_argument('--width', type=int, default=6144)
     parser.add_argument('--height', type=int, default=2048)
     parser.add_argument('--thresh', '-t', type=float, default=0.4)
 
-    parser.add_argument('--dataset_name', '-d', type=str, default="soccer_6k_single")
-    parser.add_argument('--dataset_project', '-p', type=str, default="Pytorch Test")
+    parser.add_argument('--dataset-name', '-d', type=str, default="soccer_6k_single")
+    parser.add_argument('--dataset-project', '-p', type=str, default="Pytorch Test")
 
     args = parser.parse_args()
 
