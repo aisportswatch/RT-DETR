@@ -164,7 +164,7 @@ def main(args, writer):
 
     # Write to TensorBoard
     for key, value in results.items():
-        if len(value != 1):
+        if value.numel() != 1:
             continue
         writer.add_scalar(f'Test/{key}', value.item(), 0)
 
