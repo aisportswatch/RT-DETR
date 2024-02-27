@@ -3,7 +3,6 @@ import onnxruntime as ort
 from PIL import Image, ImageDraw
 from torchvision.transforms import ToTensor
 import torch
-import cv2
 import numpy as np
 import pandas as pd
 from torch import tensor
@@ -13,8 +12,6 @@ import csv
 sys.path.insert(0, os.path.join(os.path.dirname(os.path.abspath(__file__)), '..'))
 from src.data.coco import mscoco_category2name
 from src.data.staige_dataset import StaigeDataset
-from torchvision.io import read_image
-from torchvision import datapoints
 from torchmetrics.detection.mean_ap import MeanAveragePrecision
 from tqdm import tqdm
 import argparse
