@@ -8,3 +8,5 @@ PyYAML
 scipy
 clearml[gs]
 pandas
+opencv-python-headless
+torchmetrics
