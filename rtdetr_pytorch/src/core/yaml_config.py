@@ -12,7 +12,7 @@ from .yaml_utils import load_config, merge_config, create, merge_dict
 
 
 class YAMLConfig(BaseConfig):
-    def __init__(self, cfg_path: str, **kwargs) -> None:
+    def __init__(self, cfg_path: str, epoches:int,  **kwargs) -> None:
         super().__init__()
 
         cfg = load_config(cfg_path)
@@ -24,7 +24,7 @@ class YAMLConfig(BaseConfig):
 
         self.log_step = cfg.get('log_step', 100)
         self.checkpoint_step = cfg.get('checkpoint_step', 1)
-        self.epoches = cfg.get('epoches', -1)
+        self.epoches = epoches
         self.resume = cfg.get('resume', '')
         self.tuning = cfg.get('tuning', '')
         self.sync_bn = cfg.get('sync_bn', False)

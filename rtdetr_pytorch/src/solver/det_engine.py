@@ -12,7 +12,8 @@ import pathlib
 from typing import Iterable
 
 import torch
-import torch.amp 
+import torch.amp
+from torchmetrics.detection import MeanAveragePrecision
 
 from src.data import CocoEvaluator
 from src.misc import (MetricLogger, SmoothedValue, reduce_dict)
@@ -87,6 +88,28 @@ def train_one_epoch(model: torch.nn.Module, criterion: torch.nn.Module,
     print("Averaged stats:", metric_logger)
     return {k: meter.global_avg for k, meter in metric_logger.meters.items()}
 
+
+def evaluate_metrics(model: torch.nn.Module, criterion: torch.nn.Module, postprocessors, data_loader, base_ds, device, metrics: MeanAveragePrecision):
+    model.eval()
+    criterion.eval()
+    metric_logger = MetricLogger(delimiter="  ")
+    header = 'Test:'
+    targets = []
+    preds = []
+
+    for sample, target in metric_logger.log_every(data_loader, 10, header):
+        target = [{k: v.to(device) for k, v in t.items()} for t in target]
+        sample = sample.to(device)
+        outputs = model(sample)
+        orig_target_sizes = torch.stack([t["orig_size"] for t in target], dim=0)
+        results = postprocessors(outputs, orig_target_sizes)
+        for r in results:
+            preds.append(r)
+        for t in target:
+            targets.append(t)
+    metrics.update(preds, targets)
+    result = metrics.compute()
+    return result
 
 
 @torch.no_grad()

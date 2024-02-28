@@ -7,13 +7,13 @@ train_dataloader:
   type: DataLoader
   dataset:
     type: StaigeDataset
-    annotations_file: ./dataset/upright_6k_train/data.csv
-    img_dir: ./dataset/upright_6k_train
+    annotations_file: ./dataset/train.csv
+    img_dir: ./dataset
     transforms:
       type: Compose
       ops: ~
   shuffle: True
-  batch_size: 8
+  batch_size: 1
   num_workers: 4
   drop_last: True
 
@@ -22,12 +22,12 @@ val_dataloader:
   type: DataLoader
   dataset:
     type: StaigeDataset
-    annotations_file: ./dataset/upright_6k_val/data.csv
-    img_dir: ./dataset/upright_6k_val_train
+    annotations_file: ./dataset/eval.csv
+    img_dir: ./dataset
     transforms:
       type: Compose
       ops: ~
   shuffle: False
-  batch_size: 8
+  batch_size: 1
   num_workers: 4
   drop_last: False

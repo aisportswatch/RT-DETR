@@ -8,6 +8,8 @@ from datetime import datetime
 from pathlib import Path 
 from typing import Dict
 
+from torchmetrics.detection import MeanAveragePrecision
+
 from src.misc import dist
 from src.core import BaseConfig
 
@@ -39,6 +41,8 @@ class BaseSolver(object):
 
         self.output_dir = Path(cfg.output_dir)
         self.output_dir.mkdir(parents=True, exist_ok=True)
+
+        self.metrics = MeanAveragePrecision()
 
 
     def train(self, ):
