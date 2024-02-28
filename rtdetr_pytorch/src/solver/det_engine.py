@@ -103,9 +103,9 @@ def evaluate_metrics(model: torch.nn.Module, criterion: torch.nn.Module, postpro
         outputs = model(sample)
         orig_target_sizes = torch.stack([t["orig_size"] for t in target], dim=0)
         results = postprocessors(outputs, orig_target_sizes)
-        pred = {target['image_id'].item(): output for target, output in zip(target, results)}
-        for p in pred:
-            preds.append(p)
+        # pred = {t['image_id'].item(): output for t, output in zip(target, results)}
+        for r in results:
+            preds.append(r)
         for t in target:
             targets.append(t)
     metrics.update(preds, targets)

@@ -51,6 +51,11 @@ class DetSolver(BaseSolver):
 
             module = self.ema.module if self.ema else self.model
             test_results = evaluate_metrics(module, self.criterion, self.postprocessor, self.val_dataloader, base_ds, self.device, self.metrics)
+            # Write to TensorBoard
+            for key, value in test_results.items():
+                if value.numel() != 1:
+                    continue
+                writer.add_scalar(f'Test/{key}', value.item(), 0)
             # test_stats, coco_evaluator = evaluate(
             #     module, self.criterion, self.postprocessor, self.val_dataloader, base_ds, self.device, self.output_dir
             # )
