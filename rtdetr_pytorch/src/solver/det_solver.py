@@ -55,7 +55,7 @@ class DetSolver(BaseSolver):
             for key, value in test_results.items():
                 if value.numel() != 1:
                     continue
-                writer.add_scalar(f'Test/{key}', value.item(), 0)
+                writer.add_scalar(f'Test/{key}', value.item(), epoch)
             # test_stats, coco_evaluator = evaluate(
             #     module, self.criterion, self.postprocessor, self.val_dataloader, base_ds, self.device, self.output_dir
             # )
