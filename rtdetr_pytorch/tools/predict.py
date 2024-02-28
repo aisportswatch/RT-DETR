@@ -97,8 +97,6 @@ def main(args, writer):
     
     annotations = pd.read_csv(annotations_file, header=None)
     
-
-    
     coco_format = get_coco_format(annotations, staige_labels2coco_id, input_directory, width, height)
     
      # Save targets to JSON file
@@ -135,14 +133,6 @@ def main(args, writer):
             b = b.astype(float)
             pred_dict = {"image_id": int(target["id"]), "category_id": int(l), "bbox": list(b), "score": float(s)}
             preds.append(pred_dict)
-    
-    # ds = StaigeDataset(ANNOTATIONS_FILE, input_directory, None)
-    # img, tar = ds.__getitem__(0)
-    # target_coco = metric._get_coco_format(labels=[tar["labels"]], boxes=[tar["boxes"]], masks=None, scores=None, crowds=[tar["iscrowd"]], area=[tar["area"]])
-    # target_json = json.dumps(target_coco, indent=4)
-    # with open(f"coco0_target.json", "w") as f:
-    #     f.write(target_json)
-    # metric.tm_to_coco("coco0")
         
     # Save preds to JSON file
     output_file = "preds_coco_format.json"

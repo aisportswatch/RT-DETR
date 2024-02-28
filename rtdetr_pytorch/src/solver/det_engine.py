@@ -103,7 +103,6 @@ def evaluate_metrics(model: torch.nn.Module, criterion: torch.nn.Module, postpro
         outputs = model(sample)
         orig_target_sizes = torch.stack([t["orig_size"] for t in target], dim=0)
         results = postprocessors(outputs, orig_target_sizes)
-        # pred = {t['image_id'].item(): output for t, output in zip(target, results)}
         for r in results:
             preds.append(r)
         for t in target:
@@ -114,7 +113,7 @@ def evaluate_metrics(model: torch.nn.Module, criterion: torch.nn.Module, postpro
 
 
 @torch.no_grad()
-def evaluate(model: torch.nn.Module, criterion: torch.nn.Module, postprocessors, data_loader, base_ds, device, output_dir, metrics: MeanAveragePrecision):
+def evaluate(model: torch.nn.Module, criterion: torch.nn.Module, postprocessors, data_loader, base_ds, device, output_dir):
     model.eval()
     criterion.eval()
 
