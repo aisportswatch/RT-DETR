@@ -11,7 +11,7 @@ from src.misc import dist
 from src.data import get_coco_api_from_dataset
 
 from .solver import BaseSolver
-from .det_engine import train_one_epoch, evaluate
+from .det_engine import train_one_epoch, evaluate, evaluate_metrics
 from torch.utils.tensorboard import SummaryWriter
 
 class DetSolver(BaseSolver):
@@ -50,51 +50,47 @@ class DetSolver(BaseSolver):
                     dist.save_on_master(self.state_dict(epoch), checkpoint_path)
 
             module = self.ema.module if self.ema else self.model
-            test_stats, coco_evaluator = evaluate(
-                module, self.criterion, self.postprocessor, self.val_dataloader, base_ds, self.device, self.output_dir
-            )
-
-            # TODO 
-            for k in test_stats.keys():
-                if k in best_stat:
-                    best_stat['epoch'] = epoch if test_stats[k][0] > best_stat[k] else best_stat['epoch']
-                    best_stat[k] = max(best_stat[k], test_stats[k][0])
-                else:
-                    best_stat['epoch'] = epoch
-                    best_stat[k] = test_stats[k][0]
-            print('best_stat: ', best_stat)
+            test_results = evaluate_metrics(module, self.criterion, self.postprocessor, self.val_dataloader, base_ds, self.device, self.metrics)
+            # test_stats, coco_evaluator = evaluate(
+            #     module, self.criterion, self.postprocessor, self.val_dataloader, base_ds, self.device, self.output_dir
+            # )
+            #
+            # # TODO
+            # for k in test_stats.keys():
+            #     if k in best_stat:
+            #         best_stat['epoch'] = epoch if test_stats[k][0] > best_stat[k] else best_stat['epoch']
+            #         best_stat[k] = max(best_stat[k], test_stats[k][0])
+            #     else:
+            #         best_stat['epoch'] = epoch
+            #         best_stat[k] = test_stats[k][0]
+            # print('best_stat: ', best_stat)
 
 
             log_stats = {**{f'train_{k}': v for k, v in train_stats.items()},
-                        **{f'test_{k}': v for k, v in test_stats.items()},
+                        # **{f'test_{k}': v for k, v in test_stats.items()},
                         'epoch': epoch,
                         'n_parameters': n_parameters}
 
             # Write to tensorboard
             for k, v in train_stats.items():
                 writer.add_scalar(f'Train/{k}', v, epoch)
-            for k, v in test_stats.items():
-                print(f"{k} type:{type(v)}")
-                if isinstance(v, list):
-                    for i, data in enumerate(v):
-                        writer.add_scalar(f'Test/{k}_{i}', data, epoch)
-                else:
-                    writer.add_scalar(f'Test/{k}', v, epoch)
+            print(f"test: {test_results}")
+            # TODO: torchmetrics
 
             if self.output_dir and dist.is_main_process():
                 with (self.output_dir / "log.txt").open("a") as f:
                     f.write(json.dumps(log_stats) + "\n")
 
                 # for evaluation logs
-                if coco_evaluator is not None:
-                    (self.output_dir / 'eval').mkdir(exist_ok=True)
-                    if "bbox" in coco_evaluator.coco_eval:
-                        filenames = ['latest.pth']
-                        if epoch % 50 == 0:
-                            filenames.append(f'{epoch:03}.pth')
-                        for name in filenames:
-                            torch.save(coco_evaluator.coco_eval["bbox"].eval,
-                                    self.output_dir / "eval" / name)
+                # if coco_evaluator is not None:
+                #     (self.output_dir / 'eval').mkdir(exist_ok=True)
+                #     if "bbox" in coco_evaluator.coco_eval:
+                #         filenames = ['latest.pth']
+                #         if epoch % 50 == 0:
+                #             filenames.append(f'{epoch:03}.pth')
+                #         for name in filenames:
+                #             torch.save(coco_evaluator.coco_eval["bbox"].eval,
+                #                     self.output_dir / "eval" / name)
 
         total_time = time.time() - start_time
         total_time_str = str(datetime.timedelta(seconds=int(total_time)))
